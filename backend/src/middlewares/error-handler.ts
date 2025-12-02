@@ -20,7 +20,6 @@ const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
     [...error.details.keys()].forEach((key) => {
       const errorKey = error.details.get(key);
       if (errorKey && errorKey.details && errorKey.details.length > 0) {
-        console.log(errorKey.details[0].message);
         message = errorKey.details[0].message;
       }
     });

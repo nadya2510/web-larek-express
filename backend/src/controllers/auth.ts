@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import ms, { StringValue } from 'ms';
-import { Error as MongooseError } from 'mongoose';
 import {
   ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_SECRET,
@@ -53,7 +52,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
           return next(new UnauthorizedError('Авторизация не выполнена'));
         }
       }
-      return next(new BadRequestError('Ошибка валидации данных'));
+      return next(new BadRequestError('Произошла ошибка'));
     });
 };
 // Регистрация пользователя
@@ -107,7 +106,7 @@ export const register = (req: Request, res: Response, next: NextFunction) => {
           return next(new ConflictError('Email уже зарегистрирован в системе'));
         }
       }
-      return next(new MongooseError('Произошла ошибка'));
+      return next(new BadRequestError('Произошла ошибка'));
     });
 };
 
@@ -175,7 +174,7 @@ export const refreshAccessToken = async (
       }
     }
     // Общий обработчик для всех остальных случаев
-    return next(new MongooseError('Произошла ошибка'));
+    return next(new BadRequestError('Произошла ошибка'));
   }
 };
 
