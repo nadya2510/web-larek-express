@@ -4,9 +4,10 @@ import jwt from 'jsonwebtoken';
 import ms, { StringValue } from 'ms';
 import { Error as MongooseError } from 'mongoose';
 import {
-  AUTH_REFRESH_TOKEN_EXPIRY,
   ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_SECRET,
+  AUTH_REFRESH_TOKEN_EXPIRY,
+  AUTH_ACCESS_TOKEN_EXPIRY,
 } from '../configs';
 import User from '../models/user';
 import BadRequestError from '../errors/bad-request-error';
@@ -22,10 +23,10 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
       const { name, email } = user;
 
       const accessToken = jwt.sign({ _id: user._id }, ACCESS_TOKEN_SECRET, {
-        expiresIn: '10m',
+        expiresIn: (AUTH_ACCESS_TOKEN_EXPIRY as StringValue),
       });
       const refreshToken = jwt.sign({ _id: user._id }, REFRESH_TOKEN_SECRET, {
-        expiresIn: '7d',
+        expiresIn: (AUTH_REFRESH_TOKEN_EXPIRY as StringValue),
       });
       user.tokens.push({ token: refreshToken });
       await user.save();
@@ -49,10 +50,10 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
     .catch((error) => {
       if (error instanceof Error) {
         if (error.name === 'UnauthorizedError') {
-          next(new UnauthorizedError('Авторизация не выполнена'));
+          return next(new UnauthorizedError('Авторизация не выполнена'));
         }
       }
-      next(new BadRequestError('Ошибка валидации данных'));
+      return next(new BadRequestError('Ошибка валидации данных'));
     });
 };
 // Регистрация пользователя
@@ -74,10 +75,10 @@ export const register = (req: Request, res: Response, next: NextFunction) => {
       const { name, email } = user;
 
       const accessToken = jwt.sign({ _id: user._id }, ACCESS_TOKEN_SECRET, {
-        expiresIn: '10m',
+        expiresIn: (AUTH_ACCESS_TOKEN_EXPIRY as StringValue),
       });
       const refreshToken = jwt.sign({ _id: user._id }, REFRESH_TOKEN_SECRET, {
-        expiresIn: '7d',
+        expiresIn: (AUTH_REFRESH_TOKEN_EXPIRY as StringValue),
       });
 
       user.tokens.push({ token: refreshToken });
@@ -103,12 +104,10 @@ export const register = (req: Request, res: Response, next: NextFunction) => {
     .catch((error) => {
       if (error instanceof Error) {
         if (error.message.includes('E11000')) {
-          next(new ConflictError('Email уже зарегистрирован в системе'));
-        } else if (error.name === 'ValidationError') {
-          next(new BadRequestError('Ошибка валидации данных'));
+          return next(new ConflictError('Email уже зарегистрирован в системе'));
         }
       }
-      next(new MongooseError('Произошла ошибка'));
+      return next(new MongooseError('Произошла ошибка'));
     });
 };
 
@@ -141,10 +140,10 @@ export const refreshAccessToken = async (
 
     // Генерируем новые токены с другими именами переменных
     const newAccessToken = jwt.sign({ _id: user._id }, ACCESS_TOKEN_SECRET, {
-      expiresIn: '10m',
+      expiresIn: (AUTH_ACCESS_TOKEN_EXPIRY as StringValue),
     });
     const newRefreshToken = jwt.sign({ _id: user._id }, REFRESH_TOKEN_SECRET, {
-      expiresIn: '7d',
+      expiresIn: (AUTH_REFRESH_TOKEN_EXPIRY as StringValue),
     });
 
     // Фильтруем старые токены и добавляем новый
@@ -173,9 +172,6 @@ export const refreshAccessToken = async (
       }
       if (error.name === 'JsonWebTokenError') {
         return next(new UnauthorizedError('Некорректный токен'));
-      }
-      if (error.name === 'ValidationError') {
-        return next(new BadRequestError('Ошибка валидации данных'));
       }
     }
     // Общий обработчик для всех остальных случаев

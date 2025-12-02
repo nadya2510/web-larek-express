@@ -3,7 +3,6 @@ import {
   Response,
   NextFunction,
 } from 'express';
-import { Error as MongooseError } from 'mongoose';
 import path from 'path';
 import fs from 'fs/promises';
 import Product from '../models/product';
@@ -24,7 +23,7 @@ const uploadDir = path.resolve(rootDir, UPLOAD_PUBLIC);
 export const getProduct = (_req: Request, res: Response, next: NextFunction) : void => {
   Product.find({})
     .then((products) => res.send({ items: products, total: products.length }))
-    .catch(() => next(new MongooseError('Произошла ошибка')));
+    .catch(() => next(new BadRequestError('Произошла ошибка')));
 };
 export const postProduct = async (
   req: Request,
@@ -44,11 +43,9 @@ export const postProduct = async (
     .then((product) => res.status(201).send({ item: product }))
     .catch((error: Error) => {
       if (error.message.includes('E11000')) {
-        next(new ConflictError('Товар с таким названием уже существует'));
-      } else if (error.name === 'ValidationError') {
-        next(new BadRequestError('Ошибка валидации данных'));
+        return next(new ConflictError('Товар с таким названием уже существует'));
       }
-      next(new MongooseError('Произошла ошибка'));
+      return next(new BadRequestError('Произошла ошибка'));
     });
 };
 
@@ -98,11 +95,8 @@ export const patchProduct = async (
       if (error.message.includes('E11000')) {
         return next(new ConflictError('Товар с таким названием уже существует'));
       }
-      if (error.name === 'ValidationError') {
-        return next(new BadRequestError('Ошибка валидации данных'));
-      }
     }
-    return next(new MongooseError('Произошла ошибка'));
+    return next(new BadRequestError('Произошла ошибка'));
   }
 };
 
@@ -124,6 +118,6 @@ export const deleteProduct = async (
       success: id,
     });
   } catch (error) {
-    return next(new MongooseError(`Произошла ошибка при удалении продукта:${error}`));
+    return next(new BadRequestError(`Произошла ошибка при удалении продукта:${error}`));
   }
 };

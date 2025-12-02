@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { faker } from '@faker-js/faker';
-import { Error as MongooseError } from 'mongoose';
 import Product from '../models/product';
 import BadRequestError from '../errors/bad-request-error';
 
@@ -56,7 +55,7 @@ const postOrder = async (req: Request, res: Response, next: NextFunction) => {
       total: orderData.total,
     });
   } catch (err) {
-    return next(new MongooseError('Ошибка при оформлении заказа'));
+    return next(new BadRequestError('Ошибка при оформлении заказа'));
   }
 };
 
