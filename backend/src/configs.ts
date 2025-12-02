@@ -1,7 +1,8 @@
 export const { PORT = 3000 } = process.env;
 export const { DB_ADDRESS = 'mongodb://127.0.0.1:27017/weblarek' } = process.env;
 export const { ORIGIN_ALLOW = 'http://localhost:5173' } = process.env;
-export const AUTH_REFRESH_TOKEN_EXPIRY = process.env.AUTH_REFRESH_TOKEN_EXPIRY ?? '7d';
+export const AUTH_REFRESH_TOKEN_EXPIRY: string = process.env.AUTH_REFRESH_TOKEN_EXPIRY ?? '7d';
+export const AUTH_ACCESS_TOKEN_EXPIRY: string = process.env.AUTH_ACCESS_TOKEN_EXPIRY ?? '1m';
 export const ACCESS_TOKEN_SECRET = 'super-strong-secret';
 export const REFRESH_TOKEN_SECRET = 'super-strong-secret-refresh';
 export const UPLOAD_PATH_TEMP = process.env.UPLOAD_PATH_TEMP || 'public/temp';
