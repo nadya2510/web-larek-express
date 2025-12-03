@@ -23,7 +23,12 @@ const uploadDir = path.resolve(rootDir, UPLOAD_PUBLIC);
 export const getProduct = (_req: Request, res: Response, next: NextFunction) : void => {
   Product.find({})
     .then((products) => res.send({ items: products, total: products.length }))
-    .catch(() => next(new BadRequestError('Произошла ошибка')));
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        return next(new BadRequestError(`Произошла ошибка:${error}`));
+      }
+      return next(error);
+    });
 };
 export const postProduct = async (
   req: Request,
@@ -45,7 +50,10 @@ export const postProduct = async (
       if (error.message.includes('E11000')) {
         return next(new ConflictError('Товар с таким названием уже существует'));
       }
-      return next(new BadRequestError('Произошла ошибка'));
+      if (error.name === 'CastError') {
+        return next(new BadRequestError(`Произошла ошибка:${error}`));
+      }
+      return next(error);
     });
 };
 
@@ -90,13 +98,17 @@ export const patchProduct = async (
     return res.status(200).send({
       item: updatedProduct,
     });
-  } catch (error: unknown) {
+  } catch (error) {
     if (error instanceof Error) {
       if (error.message.includes('E11000')) {
         return next(new ConflictError('Товар с таким названием уже существует'));
       }
+      if (error.name === 'CastError') {
+        return next(new BadRequestError(`Произошла ошибка:${error}`));
+      }
+      return next(error);
     }
-    return next(new BadRequestError('Произошла ошибка'));
+    return next(error);
   }
 };
 
@@ -118,6 +130,12 @@ export const deleteProduct = async (
       success: id,
     });
   } catch (error) {
-    return next(new BadRequestError(`Произошла ошибка при удалении продукта:${error}`));
+    if (error instanceof Error) {
+      if (error.name === 'CastError') {
+        return next(new BadRequestError(`Произошла ошибка при удалении продукта:${error}`));
+      }
+      return next(error);
+    }
+    return next(error);
   }
 };

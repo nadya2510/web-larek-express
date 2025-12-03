@@ -51,8 +51,12 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         if (error.name === 'UnauthorizedError') {
           return next(new UnauthorizedError('Авторизация не выполнена'));
         }
+        if (error.name === 'CastError') {
+          return next(new BadRequestError(`Произошла ошибка:${error}`));
+        }
+        return next(error);
       }
-      return next(new BadRequestError('Произошла ошибка'));
+      return next(error);
     });
 };
 // Регистрация пользователя
@@ -105,8 +109,12 @@ export const register = (req: Request, res: Response, next: NextFunction) => {
         if (error.message.includes('E11000')) {
           return next(new ConflictError('Email уже зарегистрирован в системе'));
         }
+        if (error.name === 'CastError') {
+          return next(new BadRequestError(`Произошла ошибка:${error}`));
+        }
+        return next(error);
       }
-      return next(new BadRequestError('Произошла ошибка'));
+      return next(error);
     });
 };
 
@@ -172,9 +180,13 @@ export const refreshAccessToken = async (
       if (error.name === 'JsonWebTokenError') {
         return next(new UnauthorizedError('Некорректный токен'));
       }
+      if (error.name === 'CastError') {
+        return next(new BadRequestError(`Произошла ошибка:${error}`));
+      }
+      return next(error);
     }
     // Общий обработчик для всех остальных случаев
-    return next(new BadRequestError('Произошла ошибка'));
+    return next(error);
   }
 };
 
@@ -205,7 +217,7 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
     if (error instanceof jwt.JsonWebTokenError) {
       return next(new UnauthorizedError('Авторизация не выполнена'));
     }
-    return next(new BadRequestError('Произошла ошибка'));
+    return next(error);
   }
 };
 
@@ -231,6 +243,9 @@ export const getCurrentUser = async (
       success: true,
     });
   } catch (error) {
-    return next(new UnauthorizedError(`Недействительный токен ${token}`));
+    if (error instanceof jwt.JsonWebTokenError) {
+      return next(new UnauthorizedError(`Недействительный токен ${token}`));
+    }
+    return next(error);
   }
 };

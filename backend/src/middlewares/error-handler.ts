@@ -7,7 +7,7 @@ import UnauthorizedError from '../errors/unauthorized-error';
 
 const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
   let statusCode = 500;
-  let message = 'Внутренняя ошибка сервера';
+  let message = `Внутренняя ошибка сервера:${error.message}`;
 
   const errorTypes = [BadRequestError, ConflictError, NotFoundError, UnauthorizedError];
 

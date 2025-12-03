@@ -54,8 +54,14 @@ const postOrder = async (req: Request, res: Response, next: NextFunction) => {
       id: faker.string.uuid(),
       total: orderData.total,
     });
-  } catch (err) {
-    return next(new BadRequestError('Ошибка при оформлении заказа'));
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === 'CastError') {
+        return next(new BadRequestError('Ошибка при оформлении заказа'));
+      }
+      return next(error);
+    }
+    return next(error);
   }
 };
 
